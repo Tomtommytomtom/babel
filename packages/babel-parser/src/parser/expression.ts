@@ -244,9 +244,63 @@ export default abstract class ExpressionParser extends LValParser {
     refExpressionErrors?: ExpressionErrors | null,
     afterLeftParse?: Function,
   ) {
-    return this.allowInAnd(() =>
-      this.parseMaybeAssign(refExpressionErrors, afterLeftParse),
-    );
+    return this.allowInAnd(() => {
+      if (this.match(tt._match)) {
+        const node = this.startNode();
+        return this.parseMatchStatement(node as Undone<N.MatchStatement>);
+      }
+
+      return this.parseMaybeAssign(refExpressionErrors, afterLeftParse);
+    });
+  }
+
+  // https://tc39.es/ecma262/#prod-SwitchStatement
+  parseMatchStatement(this: Parser, node: Undone<N.MatchStatement>) {
+    this.next();
+    node.discriminant = this.parseHeaderExpression();
+    const whens: N.MatchStatement["whens"] = (node.whens = []);
+    this.expect(tt.braceL);
+    this.state.labels.push({ kind: "switch" });
+    this.scope.enter(ScopeFlag.OTHER);
+
+    // Statements under must be grouped (by label) in SwitchCase
+    // nodes. `cur` is used to keep the node that we are currently
+    // adding statements to.
+
+    let cur;
+    for (let sawDefault; !this.match(tt.braceR); ) {
+      if (this.match(tt._when) || this.match(tt._default)) {
+        const isWhen = this.match(tt._when);
+        if (cur) this.finishNode(cur, "When");
+        // @ts-expect-error Fixme
+        whens.push((cur = this.startNode()));
+        cur.consequent = [];
+        this.next();
+        if (isWhen) {
+          cur.test = this.parseHeaderExpression();
+        } else {
+          if (sawDefault) {
+            this.raise(Errors.MultipleDefaultsInSwitch, {
+              at: this.state.lastTokStartLoc,
+            });
+          }
+          sawDefault = true;
+          cur.test = null;
+        }
+        this.expect(tt.colon);
+      } else {
+        if (cur) {
+          cur.consequent.push(this.parseStatementListItem());
+        } else {
+          this.unexpected();
+        }
+      }
+    }
+    this.scope.exit();
+    if (cur) this.finishNode(cur, "When");
+    this.next(); // Closing brace
+    this.state.labels.pop();
+    return this.finishNode(node, "MatchStatement");
   }
 
   // This method is only used by

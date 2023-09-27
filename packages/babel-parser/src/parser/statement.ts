@@ -478,6 +478,8 @@ export default abstract class StatementParser extends ExpressionParser {
         return this.parseReturnStatement(node as Undone<N.ReturnStatement>);
       case tt._switch:
         return this.parseSwitchStatement(node as Undone<N.SwitchStatement>);
+      case tt._match:
+        return this.parseMatchStatement(node as Undone<N.MatchStatement>);
       case tt._throw:
         return this.parseThrowStatement(node as Undone<N.ThrowStatement>);
       case tt._try:

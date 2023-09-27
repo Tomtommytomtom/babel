@@ -272,10 +272,21 @@ export interface SwitchStatement extends NodeBase {
   discriminant: Expression;
   cases: SwitchCase[];
 }
+export interface MatchStatement extends NodeBase {
+  type: "MatchStatement";
+  discriminant: Expression;
+  whens: When[];
+}
 
 export interface SwitchCase extends NodeBase {
   type: "SwitchCase";
   test: Expression | undefined | null;
+  consequent: Statement[];
+}
+
+export interface When extends NodeBase {
+  type: "When";
+  test: Expression | Pattern;
   consequent: Statement[];
 }
 

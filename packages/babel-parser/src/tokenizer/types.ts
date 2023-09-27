@@ -265,6 +265,8 @@ export const tt = {
   _extends: createKeyword("extends", { beforeExpr }),
   _export: createKeyword("export"),
   _import: createKeyword("import", { startsExpr }),
+  _match: createKeyword("match", { startsExpr }),
+  _when: createKeyword("when"),
   _null: createKeyword("null", { startsExpr }),
   _true: createKeyword("true", { startsExpr }),
   _false: createKeyword("false", { startsExpr }),

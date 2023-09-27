@@ -717,20 +717,9 @@ export default abstract class Tokenizer extends CommentsParser {
   readToken_atSign(): void {
     const next = this.input.charCodeAt(this.state.pos + 1);
 
-    // '@@'
-    if (
-      next === charCodes.atSign &&
-      this.hasPlugin([
-        "pipelineOperator",
-        { proposal: "hack", topicToken: "@@" },
-      ])
-    ) {
-      this.finishOp(tt.doubleAt, 2);
-    }
     // '@'
-    else {
-      this.finishOp(tt.at, 1);
-    }
+
+    this.finishOp(tt.at, 1);
   }
 
   readToken_plus_min(code: number): void {
